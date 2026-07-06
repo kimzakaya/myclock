@@ -42,7 +42,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.4em;
+  gap: 0.12em;
   /* base unit: 1em of .clock === main time font size.
      Sized from whichever of width/height is actually the tighter fit,
      so the clock fills the screen on any aspect ratio without overflowing. */
@@ -355,21 +355,22 @@ body {
 /* ---- bottom sheet ---- */
 .settings-panel {
   position: fixed;
-  left: 0;
-  right: 0;
+  left: 50%;
   bottom: 0;
+  width: 100%;
+  max-width: 480px;
+  transform: translate(-50%, 105%);
   z-index: 40;
   background: #161616;
   border-radius: 20px 20px 0 0;
   padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
-  transform: translateY(105%);
   transition: transform 0.28s ease;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
 }
 
 .settings-panel.open {
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 
 .settings-handle {
