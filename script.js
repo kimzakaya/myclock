@@ -23,6 +23,8 @@ const toastEl = document.getElementById("toast");
 const sizeMinus = document.getElementById("sizeMinus");
 const sizePlus = document.getElementById("sizePlus");
 const sizeValue = document.getElementById("sizeValue");
+const previewFrame = document.getElementById("previewFrame");
+const previewViewport = document.getElementById("previewViewport");
 
 const layoutElements = Array.from(document.querySelectorAll(".layout-el"));
 const LAYOUT_KEYS = ["date", "ampm", "time", "seconds"];
@@ -30,7 +32,7 @@ const MIN_SCALE = 0.4;
 const MAX_SCALE = 3;
 
 const MIN_SIZE_SCALE = 0.6;
-const MAX_SIZE_SCALE = 1.3;
+const MAX_SIZE_SCALE = 1.2;
 const SIZE_SCALE_STEP = 0.1;
 
 function defaultLayout() {
@@ -74,11 +76,13 @@ function applyFormat() {
     btn.classList.toggle("active", btn.dataset.format === settings.format);
   });
   ampmEl.classList.toggle("hidden", settings.format === "24");
+  refreshPreview();
 }
 
 function applyDateVisibility() {
   dateEl.classList.toggle("hidden", !settings.dateVisible);
   dateToggle.classList.toggle("active", settings.dateVisible);
+  refreshPreview();
 }
 
 function applyColor() {
@@ -104,6 +108,7 @@ function applyLayoutFor(el) {
 
 function applyAllLayout() {
   layoutElements.forEach(applyLayoutFor);
+  refreshPreview();
 }
 
 function applyAllSettings() {
@@ -112,6 +117,52 @@ function applyAllSettings() {
   applyColor();
   applySizeScale();
   applyAllLayout();
+}
+
+/* ---- edit-mode live preview window ---- */
+
+const PREVIEW_TARGET_LONG_SIDE = 130;
+let previewActive = false;
+
+function layoutPreviewFrame() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const ratio = vw / vh;
+  let frameW;
+  let frameH;
+  if (vh >= vw) {
+    frameH = PREVIEW_TARGET_LONG_SIDE;
+    frameW = Math.round(frameH * ratio);
+  } else {
+    frameW = PREVIEW_TARGET_LONG_SIDE;
+    frameH = Math.round(frameW / ratio);
+  }
+  previewFrame.style.width = `${frameW}px`;
+  previewFrame.style.height = `${frameH}px`;
+
+  const scale = frameW / vw;
+  previewViewport.style.width = `${vw}px`;
+  previewViewport.style.height = `${vh}px`;
+  previewViewport.style.transform = `scale(${scale})`;
+}
+
+function refreshPreview() {
+  if (!previewActive) return;
+  const clone = document.querySelector(".clock").cloneNode(true);
+  previewViewport.replaceChildren(clone);
+}
+
+function startPreview() {
+  previewActive = true;
+  layoutPreviewFrame();
+  refreshPreview();
+  window.addEventListener("resize", layoutPreviewFrame);
+}
+
+function stopPreview() {
+  previewActive = false;
+  previewViewport.replaceChildren();
+  window.removeEventListener("resize", layoutPreviewFrame);
 }
 
 function render() {
@@ -139,6 +190,8 @@ function render() {
 
   mainTimeEl.textContent = `${hh}:${mm}`;
   secondsEl.textContent = ss;
+
+  refreshPreview();
 }
 
 function tick() {
@@ -215,6 +268,9 @@ function setEditMode(active) {
   editLayoutBtn.textContent = active ? "편집 종료" : "편집 시작";
   if (active) {
     closeSettings();
+    startPreview();
+  } else {
+    stopPreview();
   }
 }
 
