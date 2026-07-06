@@ -1,6 +1,7 @@
 const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 const STORAGE_KEY = "myClockSettings";
 
+const clockEl = document.querySelector(".clock");
 const dateEl = document.getElementById("date");
 const ampmEl = document.getElementById("ampm");
 const mainTimeEl = document.getElementById("mainTime");
@@ -148,7 +149,7 @@ function layoutPreviewFrame() {
 
 function refreshPreview() {
   if (!previewActive) return;
-  const clone = document.querySelector(".clock").cloneNode(true);
+  const clone = clockEl.cloneNode(true);
   previewViewport.replaceChildren(clone);
 }
 
