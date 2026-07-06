@@ -147,9 +147,15 @@ function layoutPreviewFrame() {
   previewViewport.style.transform = `scale(${scale})`;
 }
 
+function stripIds(root) {
+  if (root.id) root.removeAttribute("id");
+  root.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+}
+
 function refreshPreview() {
   if (!previewActive) return;
   const clone = clockEl.cloneNode(true);
+  stripIds(clone);
   previewViewport.replaceChildren(clone);
 }
 
@@ -309,6 +315,7 @@ layoutElements.forEach((el) => {
       const dy = ev.clientY - startY;
       settings.layout[key] = { ...startPos, x: startPos.x + dx, y: startPos.y + dy };
       applyLayoutFor(el);
+      refreshPreview();
     }
 
     function onUp() {
@@ -340,6 +347,7 @@ layoutElements.forEach((el) => {
       const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, startScale + delta / 150));
       settings.layout[key] = { ...settings.layout[key], scale: newScale };
       applyLayoutFor(el);
+      refreshPreview();
     }
 
     function onUp() {
