@@ -430,5 +430,18 @@ fullscreenToggle.addEventListener("click", () => {
   document.addEventListener(evt, updateFullscreenButton);
 });
 
+/* ---- TEMP debug overlay: remove once orientation issue is diagnosed ---- */
+const debugInfoEl = document.getElementById("debugInfo");
+function updateDebugInfo() {
+  if (!debugInfoEl) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+  debugInfoEl.textContent = `${w} x ${h} / ${isPortrait ? "portrait" : "landscape"}`;
+}
+updateDebugInfo();
+window.addEventListener("resize", updateDebugInfo);
+window.addEventListener("orientationchange", updateDebugInfo);
+
 applyAllSettings();
 tick();
