@@ -33,8 +33,8 @@ const MIN_SCALE = 0.4;
 const MAX_SCALE = 3;
 
 const MIN_SIZE_SCALE = 0.6;
-const MAX_SIZE_SCALE = 1.2;
-const SIZE_SCALE_STEP = 0.1;
+const MAX_SIZE_SCALE = 1;
+const SIZE_SCALE_STEP = 0.05;
 
 function defaultLayout() {
   const layout = {};
@@ -429,19 +429,6 @@ fullscreenToggle.addEventListener("click", () => {
 ["fullscreenchange", "webkitfullscreenchange", "MSFullscreenChange"].forEach((evt) => {
   document.addEventListener(evt, updateFullscreenButton);
 });
-
-/* ---- TEMP debug overlay: remove once orientation issue is diagnosed ---- */
-const debugInfoEl = document.getElementById("debugInfo");
-function updateDebugInfo() {
-  if (!debugInfoEl) return;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-  debugInfoEl.textContent = `${w} x ${h} / ${isPortrait ? "portrait" : "landscape"}`;
-}
-updateDebugInfo();
-window.addEventListener("resize", updateDebugInfo);
-window.addEventListener("orientationchange", updateDebugInfo);
 
 applyAllSettings();
 tick();

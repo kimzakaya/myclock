@@ -50,7 +50,7 @@ body {
 @media (orientation: portrait) {
   .clock {
     gap: clamp(20px, 7vh, 100px);
-    font-size: calc(clamp(52px, 28vmin, 300px) * var(--clock-scale));
+    font-size: calc(clamp(56px, 31vmin, 320px) * var(--clock-scale));
   }
 }
 
