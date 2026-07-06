@@ -1,0 +1,480 @@
+:root {
+  color-scheme: dark;
+  --clock-color: #eef1f6;
+  --clock-scale: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.screen {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vmin;
+  /* base unit: 1em of .clock === main time font size */
+  font-size: calc(clamp(48px, 26vmin, 260px) * var(--clock-scale));
+}
+
+@media (orientation: portrait) {
+  .clock {
+    font-size: calc(clamp(52px, 28vmin, 300px) * var(--clock-scale));
+  }
+}
+
+.date {
+  font-size: 0.16em;
+  color: var(--clock-color);
+  opacity: 0.72;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.hidden {
+  display: none;
+}
+
+.time-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.ampm {
+  font-size: 0.17em;
+  font-weight: 600;
+  color: var(--clock-color);
+  letter-spacing: 0.02em;
+  align-self: center;
+  margin-right: 0.14em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+
+.main-time,
+.seconds {
+  font-family: "DS-Digital", "Courier New", monospace;
+  color: var(--clock-color);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.main-time {
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.seconds {
+  font-size: 0.42em;
+  font-weight: 700;
+  align-self: flex-end;
+  margin-left: 0.1em;
+  margin-bottom: 0.05em;
+}
+
+/* ---- draggable / resizable clock elements ---- */
+.layout-el {
+  position: relative;
+  touch-action: none;
+  transform-origin: center center;
+}
+
+.resize-handle {
+  display: none;
+}
+
+.screen.edit-mode .layout-el {
+  cursor: grab;
+  outline: 1.5px dashed rgba(255, 255, 255, 0.55);
+  outline-offset: 10px;
+  border-radius: 4px;
+}
+
+.screen.edit-mode .layout-el:active {
+  cursor: grabbing;
+}
+
+.screen.edit-mode .resize-handle {
+  display: block;
+  position: absolute;
+  right: -14px;
+  bottom: -14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #0c0c0c;
+  cursor: nwse-resize;
+  z-index: 5;
+}
+
+/* ---- edit mode top bar ---- */
+.edit-bar {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: #1c1c1e;
+  border-radius: 999px;
+  padding: 8px 10px 8px 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+}
+
+.screen.edit-mode .edit-bar {
+  display: flex;
+}
+
+.edit-bar-hint {
+  color: #b9bcc2;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.edit-done-btn {
+  border: none;
+  background: #eef1f6;
+  color: #0c0c0c;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* ---- settings text buttons ---- */
+.text-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #eef1f6;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.text-btn-danger {
+  background: rgba(255, 90, 90, 0.15);
+  color: #ff8080;
+}
+
+/* ---- settings gear button ---- */
+.settings-toggle {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 18px);
+  right: calc(env(safe-area-inset-right) + 18px);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd3da;
+  padding: 0;
+  z-index: 20;
+}
+
+.settings-toggle:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ---- fullscreen button ---- */
+.fullscreen-toggle {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 18px);
+  left: calc(env(safe-area-inset-left) + 18px);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd3da;
+  padding: 0;
+  z-index: 20;
+}
+
+.fullscreen-toggle:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.fullscreen-toggle .icon-exit {
+  display: none;
+}
+
+.fullscreen-toggle.is-fullscreen .icon-enter {
+  display: none;
+}
+
+.fullscreen-toggle.is-fullscreen .icon-exit {
+  display: block;
+}
+
+/* ---- toast ---- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 32px);
+  transform: translate(-50%, 12px);
+  background: #1c1c1e;
+  color: #eef1f6;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 12px 18px;
+  border-radius: 12px;
+  max-width: calc(100vw - 48px);
+  text-align: center;
+  line-height: 1.5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 60;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---- backdrop ---- */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 30;
+}
+
+.settings-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---- bottom sheet ---- */
+.settings-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: #161616;
+  border-radius: 20px 20px 0 0;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(105%);
+  transition: transform 0.28s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.settings-panel.open {
+  transform: translateY(0);
+}
+
+.settings-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #444;
+  margin: 6px auto 16px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-row:first-of-type {
+  border-top: none;
+}
+
+.settings-label {
+  color: #d5d8dd;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* segmented control (12/24) */
+.segmented {
+  display: flex;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.seg-btn {
+  border: none;
+  background: transparent;
+  color: #a7abb3;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+}
+
+.seg-btn.active {
+  background: #eef1f6;
+  color: #0c0c0c;
+}
+
+/* date show/hide toggle */
+.toggle-btn {
+  position: relative;
+  width: 46px;
+  height: 27px;
+  border-radius: 999px;
+  border: none;
+  background: #3a3a3d;
+  padding: 0;
+}
+
+.toggle-btn::after {
+  content: "";
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.toggle-btn.active {
+  background: #34c759;
+}
+
+.toggle-btn.active::after {
+  transform: translateX(19px);
+}
+
+/* size stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stepper-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #eef1f6;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.stepper-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.35;
+}
+
+.stepper-value {
+  color: #d5d8dd;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 42px;
+  text-align: center;
+}
+
+/* color swatches */
+.settings-row-color {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.color-swatches {
+  display: flex;
+  justify-content: space-between;
+}
+
+.swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--c);
+  padding: 0;
+  position: relative;
+}
+
+.swatch.active {
+  border-color: #fff;
+}
+
+.swatch-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.swatch-custom input[type="color"] {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+}

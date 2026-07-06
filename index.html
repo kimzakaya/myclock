@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Clock</title>
+<link rel="preconnect" href="https://fonts.cdnfonts.com">
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/ds-digital">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="screen">
+    <button class="settings-toggle" id="settingsToggle" aria-label="설정">
+      <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+
+    <button class="fullscreen-toggle" id="fullscreenToggle" aria-label="전체화면">
+      <svg class="icon-enter" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+        <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>
+        <path d="M8 21H5a2 2 0 0 1-2-2v-3"></path>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+      </svg>
+      <svg class="icon-exit" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3v3a2 2 0 0 1-2 2H4"></path>
+        <path d="M15 3v3a2 2 0 0 0 2 2h3"></path>
+        <path d="M9 21v-3a2 2 0 0 0-2-2H4"></path>
+        <path d="M15 21v-3a2 2 0 0 1 2-2h3"></path>
+      </svg>
+    </button>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="edit-bar" id="editBar">
+      <span class="edit-bar-hint">드래그로 이동 · 모서리 핸들로 크기 조절</span>
+      <button class="edit-done-btn" id="editDoneBtn">완료</button>
+    </div>
+
+    <div class="clock">
+      <div class="date layout-el" id="dateWrap" data-el="date">
+        <span id="date"></span>
+        <span class="resize-handle"></span>
+      </div>
+
+      <div class="time-row">
+        <div class="ampm layout-el" id="ampmWrap" data-el="ampm">
+          <span id="ampm">AM</span>
+          <span class="resize-handle"></span>
+        </div>
+        <div class="main-time layout-el" id="mainTimeWrap" data-el="time">
+          <span id="mainTime">00:00</span>
+          <span class="resize-handle"></span>
+        </div>
+        <div class="seconds layout-el" id="secondsWrap" data-el="seconds">
+          <span id="seconds">00</span>
+          <span class="resize-handle"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-backdrop" id="settingsBackdrop"></div>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-handle"></div>
+
+      <div class="settings-row">
+        <span class="settings-label">시간 형식</span>
+        <div class="segmented" id="formatSegment">
+          <button class="seg-btn" data-format="12">12시간</button>
+          <button class="seg-btn" data-format="24">24시간</button>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">날짜 표시</span>
+        <button class="toggle-btn" id="dateToggle"></button>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">전체 크기</span>
+        <div class="stepper">
+          <button class="stepper-btn" id="sizeMinus" aria-label="크기 축소">−</button>
+          <span class="stepper-value" id="sizeValue">100%</span>
+          <button class="stepper-btn" id="sizePlus" aria-label="크기 확대">+</button>
+        </div>
+      </div>
+
+      <div class="settings-row settings-row-color">
+        <span class="settings-label">색상</span>
+        <div class="color-swatches" id="colorSwatches">
+          <button class="swatch" data-color="#eef1f6" style="--c:#eef1f6"></button>
+          <button class="swatch" data-color="#00e5ff" style="--c:#00e5ff"></button>
+          <button class="swatch" data-color="#39ff6a" style="--c:#39ff6a"></button>
+          <button class="swatch" data-color="#ff5a5a" style="--c:#ff5a5a"></button>
+          <button class="swatch" data-color="#ffb020" style="--c:#ffb020"></button>
+          <button class="swatch" data-color="#c86bff" style="--c:#c86bff"></button>
+          <label class="swatch swatch-custom" style="--c:conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red)">
+            <input type="color" id="customColor" value="#eef1f6">
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">레이아웃 편집</span>
+        <button class="text-btn" id="editLayoutBtn">편집 시작</button>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">레이아웃 초기화</span>
+        <button class="text-btn text-btn-danger" id="resetLayoutBtn">초기화</button>
+      </div>
+    </div>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
