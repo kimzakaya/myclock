@@ -42,16 +42,11 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3vmin;
-  /* base unit: 1em of .clock === main time font size */
-  font-size: calc(clamp(48px, 26vmin, 260px) * var(--clock-scale));
-}
-
-@media (orientation: portrait) {
-  .clock {
-    gap: clamp(20px, 7vh, 100px);
-    font-size: calc(clamp(56px, 31vmin, 320px) * var(--clock-scale));
-  }
+  gap: 0.4em;
+  /* base unit: 1em of .clock === main time font size.
+     Sized from whichever of width/height is actually the tighter fit,
+     so the clock fills the screen on any aspect ratio without overflowing. */
+  font-size: calc(clamp(32px, min(31vw, 50vh), 640px) * var(--clock-scale));
 }
 
 .date {
