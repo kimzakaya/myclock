@@ -15,11 +15,39 @@
 </head>
 <body>
   <div class="screen">
+    <div class="bg-orbs" aria-hidden="true">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="orb orb-3"></span>
+    </div>
+
     <button class="settings-toggle" id="settingsToggle" aria-label="설정">
       <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="3"></circle>
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
       </svg>
+    </button>
+
+    <button class="settings-toggle pomodoro-toggle" id="pomodoroToggle" aria-label="포모도로 타이머">
+      <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="10" y1="2" x2="14" y2="2"></line>
+        <line x1="12" y1="14" x2="15" y2="11"></line>
+        <circle cx="12" cy="14" r="8"></circle>
+      </svg>
+    </button>
+
+    <a class="settings-toggle dashboard-toggle" id="dashboardLink" href="dashboard.html" aria-label="대시보드">
+      <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+      </svg>
+    </a>
+
+    <button class="pomodoro-badge hidden" id="pomodoroBadge">
+      <span id="pomodoroBadgePhase">집중</span>
+      <span class="pomodoro-badge-time" id="pomodoroBadgeTime">25:00</span>
     </button>
 
     <button class="fullscreen-toggle" id="fullscreenToggle" aria-label="전체화면">
@@ -78,6 +106,15 @@
       <div class="settings-handle"></div>
 
       <div class="settings-row">
+        <span class="settings-label">디자인</span>
+        <div class="segmented" id="styleSegment">
+          <button class="seg-btn" data-style="digital">디지털</button>
+          <button class="seg-btn" data-style="bold">볼드</button>
+          <button class="seg-btn" data-style="glass">글래스</button>
+        </div>
+      </div>
+
+      <div class="settings-row">
         <span class="settings-label">시간 형식</span>
         <div class="segmented" id="formatSegment">
           <button class="seg-btn" data-format="12">12시간</button>
@@ -122,6 +159,64 @@
       <div class="settings-row">
         <span class="settings-label">레이아웃 초기화</span>
         <button class="text-btn text-btn-danger" id="resetLayoutBtn">초기화</button>
+      </div>
+    </div>
+
+    <div class="settings-panel pomodoro-panel" id="pomodoroPanel">
+      <div class="settings-handle"></div>
+
+      <div class="pomodoro-display">
+        <span class="pomodoro-phase" id="pomodoroPhaseLabel">집중 시간</span>
+        <span class="pomodoro-time" id="pomodoroTimeLabel">25:00</span>
+        <div class="pomodoro-dots" id="pomodoroDots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="pomodoro-controls">
+        <button class="pomodoro-icon-btn" id="pomodoroResetBtn" aria-label="초기화">
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+            <path d="M3 4v5h5"></path>
+          </svg>
+        </button>
+        <button class="pomodoro-main-btn" id="pomodoroStartBtn">시작</button>
+        <button class="pomodoro-icon-btn" id="pomodoroSkipBtn" aria-label="건너뛰기">
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 4l10 8-10 8V4z"></path>
+            <line x1="19" y1="5" x2="19" y2="19"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">집중 시간</span>
+        <div class="stepper">
+          <button class="stepper-btn" id="workMinus" aria-label="집중 시간 축소">−</button>
+          <span class="stepper-value" id="workValue">25분</span>
+          <button class="stepper-btn" id="workPlus" aria-label="집중 시간 확대">+</button>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">짧은 휴식</span>
+        <div class="stepper">
+          <button class="stepper-btn" id="shortBreakMinus" aria-label="짧은 휴식 축소">−</button>
+          <span class="stepper-value" id="shortBreakValue">5분</span>
+          <button class="stepper-btn" id="shortBreakPlus" aria-label="짧은 휴식 확대">+</button>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-label">긴 휴식</span>
+        <div class="stepper">
+          <button class="stepper-btn" id="longBreakMinus" aria-label="긴 휴식 축소">−</button>
+          <span class="stepper-value" id="longBreakValue">15분</span>
+          <button class="stepper-btn" id="longBreakPlus" aria-label="긴 휴식 확대">+</button>
+        </div>
       </div>
     </div>
   </div>

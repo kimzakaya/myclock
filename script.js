@@ -1,5 +1,7 @@
 const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
+const WEEKDAYS_EN = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const STORAGE_KEY = "myClockSettings";
+const BG_COLORS = { digital: "#000000", bold: "#12141c", glass: "#05050b" };
 
 const clockEl = document.querySelector(".clock");
 const dateEl = document.getElementById("date");
@@ -10,6 +12,7 @@ const secondsEl = document.getElementById("seconds");
 const settingsToggle = document.getElementById("settingsToggle");
 const settingsPanel = document.getElementById("settingsPanel");
 const settingsBackdrop = document.getElementById("settingsBackdrop");
+const styleSegment = document.getElementById("styleSegment");
 const formatSegment = document.getElementById("formatSegment");
 const dateToggle = document.getElementById("dateToggle");
 const colorSwatches = document.getElementById("colorSwatches");
@@ -26,6 +29,27 @@ const sizePlus = document.getElementById("sizePlus");
 const sizeValue = document.getElementById("sizeValue");
 const previewFrame = document.getElementById("previewFrame");
 const previewViewport = document.getElementById("previewViewport");
+
+const pomodoroToggle = document.getElementById("pomodoroToggle");
+const pomodoroBadge = document.getElementById("pomodoroBadge");
+const pomodoroBadgePhase = document.getElementById("pomodoroBadgePhase");
+const pomodoroBadgeTime = document.getElementById("pomodoroBadgeTime");
+const pomodoroPanel = document.getElementById("pomodoroPanel");
+const pomodoroPhaseLabel = document.getElementById("pomodoroPhaseLabel");
+const pomodoroTimeLabel = document.getElementById("pomodoroTimeLabel");
+const pomodoroDots = document.getElementById("pomodoroDots");
+const pomodoroStartBtn = document.getElementById("pomodoroStartBtn");
+const pomodoroResetBtn = document.getElementById("pomodoroResetBtn");
+const pomodoroSkipBtn = document.getElementById("pomodoroSkipBtn");
+const workMinus = document.getElementById("workMinus");
+const workPlus = document.getElementById("workPlus");
+const workValue = document.getElementById("workValue");
+const shortBreakMinus = document.getElementById("shortBreakMinus");
+const shortBreakPlus = document.getElementById("shortBreakPlus");
+const shortBreakValue = document.getElementById("shortBreakValue");
+const longBreakMinus = document.getElementById("longBreakMinus");
+const longBreakPlus = document.getElementById("longBreakPlus");
+const longBreakValue = document.getElementById("longBreakValue");
 
 const layoutElements = Array.from(document.querySelectorAll(".layout-el"));
 const LAYOUT_KEYS = ["date", "ampm", "time", "seconds"];
@@ -45,11 +69,13 @@ function defaultLayout() {
 }
 
 const defaultSettings = {
+  style: "digital",
   format: "12",
   dateVisible: true,
   color: "#eef1f6",
   sizeScale: 1,
   layout: defaultLayout(),
+  pomodoro: { work: 25, shortBreak: 5, longBreak: 15 },
 };
 
 function loadSettings() {
@@ -60,9 +86,10 @@ function loadSettings() {
     LAYOUT_KEYS.forEach((key) => {
       merged.layout[key] = { ...defaultLayout()[key], ...merged.layout[key] };
     });
+    merged.pomodoro = { ...defaultSettings.pomodoro, ...(saved && saved.pomodoro) };
     return merged;
   } catch {
-    return { ...defaultSettings, layout: defaultLayout() };
+    return { ...defaultSettings, layout: defaultLayout(), pomodoro: { ...defaultSettings.pomodoro } };
   }
 }
 
@@ -70,6 +97,18 @@ const settings = loadSettings();
 
 function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function applyStyle() {
+  screenEl.dataset.style = settings.style;
+  styleSegment.querySelectorAll(".seg-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.style === settings.style);
+  });
+  document.documentElement.style.setProperty(
+    "--bg-color",
+    BG_COLORS[settings.style] || BG_COLORS.digital
+  );
+  refreshPreview();
 }
 
 function applyFormat() {
@@ -113,6 +152,7 @@ function applyAllLayout() {
 }
 
 function applyAllSettings() {
+  applyStyle();
   applyFormat();
   applyDateVisibility();
   applyColor();
@@ -178,8 +218,13 @@ function render() {
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
-  const weekday = WEEKDAYS_KO[now.getDay()];
-  dateEl.textContent = `${y}.${m}.${d} (${weekday})`;
+  if (settings.style === "bold" || settings.style === "glass") {
+    const weekday = WEEKDAYS_EN[now.getDay()];
+    dateEl.textContent = `${y}.${m}.${d} | ${weekday}`;
+  } else {
+    const weekday = WEEKDAYS_KO[now.getDay()];
+    dateEl.textContent = `${y}.${m}.${d} (${weekday})`;
+  }
 
   const hours24 = now.getHours();
   const isPM = hours24 >= 12;
@@ -203,19 +248,23 @@ function render() {
 
 function tick() {
   render();
+  updatePomodoroTick();
   const now = new Date();
   const delay = 1000 - now.getMilliseconds();
   setTimeout(tick, delay);
 }
 
 function openSettings() {
+  closePomodoro();
   settingsPanel.classList.add("open");
   settingsBackdrop.classList.add("open");
 }
 
 function closeSettings() {
   settingsPanel.classList.remove("open");
-  settingsBackdrop.classList.remove("open");
+  if (!pomodoroPanel.classList.contains("open")) {
+    settingsBackdrop.classList.remove("open");
+  }
 }
 
 settingsToggle.addEventListener("click", () => {
@@ -227,7 +276,19 @@ settingsToggle.addEventListener("click", () => {
   }
 });
 
-settingsBackdrop.addEventListener("click", closeSettings);
+settingsBackdrop.addEventListener("click", () => {
+  closeSettings();
+  closePomodoro();
+});
+
+styleSegment.addEventListener("click", (e) => {
+  const btn = e.target.closest(".seg-btn");
+  if (!btn) return;
+  settings.style = btn.dataset.style;
+  applyStyle();
+  saveSettings();
+  render();
+});
 
 formatSegment.addEventListener("click", (e) => {
   const btn = e.target.closest(".seg-btn");
@@ -275,6 +336,7 @@ function setEditMode(active) {
   editLayoutBtn.textContent = active ? "편집 종료" : "편집 시작";
   if (active) {
     closeSettings();
+    closePomodoro();
     startPreview();
   } else {
     stopPreview();
@@ -429,6 +491,182 @@ fullscreenToggle.addEventListener("click", () => {
 ["fullscreenchange", "webkitfullscreenchange", "MSFullscreenChange"].forEach((evt) => {
   document.addEventListener(evt, updateFullscreenButton);
 });
+
+/* ---- pomodoro timer ---- */
+
+const POMODORO_CYCLES_BEFORE_LONG_BREAK = 4;
+const POMODORO_PHASE_LABELS = { work: "집중 시간", short: "짧은 휴식", long: "긴 휴식" };
+const POMODORO_BADGE_LABELS = { work: "집중", short: "휴식", long: "긴 휴식" };
+const POMODORO_COMPLETE_MESSAGES = {
+  work: "집중 시간이 끝났어요. 잠시 쉬어가세요.",
+  short: "휴식 종료! 다시 집중해볼까요?",
+  long: "긴 휴식 종료! 다음 사이클을 시작해요.",
+};
+
+let pomodoroPhase = "work";
+let pomodoroRemaining = settings.pomodoro.work * 60;
+let pomodoroRunning = false;
+let pomodoroActive = false;
+let pomodoroCyclesCompleted = 0;
+
+function pomodoroPhaseDuration(phase) {
+  if (phase === "work") return settings.pomodoro.work * 60;
+  if (phase === "short") return settings.pomodoro.shortBreak * 60;
+  return settings.pomodoro.longBreak * 60;
+}
+
+function formatMMSS(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    [880, 1320].forEach((freq, i) => {
+      const start = now + i * 0.18;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.35);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.4);
+    });
+    setTimeout(() => ctx.close(), 800);
+  } catch {
+    /* audio not available; silently skip the chime */
+  }
+}
+
+function renderPomodoro() {
+  const timeStr = formatMMSS(pomodoroRemaining);
+  pomodoroPhaseLabel.textContent = POMODORO_PHASE_LABELS[pomodoroPhase];
+  pomodoroTimeLabel.textContent = timeStr;
+  pomodoroStartBtn.textContent = pomodoroRunning ? "일시정지" : "시작";
+  pomodoroStartBtn.classList.toggle("is-running", pomodoroRunning);
+  pomodoroToggle.classList.toggle("is-running", pomodoroRunning);
+
+  pomodoroDots.querySelectorAll(".dot").forEach((dot, i) => {
+    dot.classList.toggle("filled", i < pomodoroCyclesCompleted);
+  });
+
+  pomodoroBadge.classList.toggle("hidden", !pomodoroActive);
+  pomodoroBadgePhase.textContent = POMODORO_BADGE_LABELS[pomodoroPhase];
+  pomodoroBadgeTime.textContent = timeStr;
+}
+
+function advancePomodoroPhase(notify) {
+  const endedPhase = pomodoroPhase;
+  if (pomodoroPhase === "work") {
+    pomodoroCyclesCompleted += 1;
+    pomodoroPhase = pomodoroCyclesCompleted >= POMODORO_CYCLES_BEFORE_LONG_BREAK ? "long" : "short";
+  } else if (pomodoroPhase === "long") {
+    pomodoroCyclesCompleted = 0;
+    pomodoroPhase = "work";
+  } else {
+    pomodoroPhase = "work";
+  }
+  pomodoroRemaining = pomodoroPhaseDuration(pomodoroPhase);
+  if (notify) {
+    pomodoroRunning = false;
+    showToast(POMODORO_COMPLETE_MESSAGES[endedPhase]);
+    playChime();
+  }
+  renderPomodoro();
+}
+
+function updatePomodoroTick() {
+  if (!pomodoroRunning) return;
+  pomodoroRemaining -= 1;
+  if (pomodoroRemaining <= 0) {
+    advancePomodoroPhase(true);
+  } else {
+    renderPomodoro();
+  }
+}
+
+function syncPomodoroDurationLabels() {
+  workValue.textContent = `${settings.pomodoro.work}분`;
+  shortBreakValue.textContent = `${settings.pomodoro.shortBreak}분`;
+  longBreakValue.textContent = `${settings.pomodoro.longBreak}분`;
+  workMinus.disabled = settings.pomodoro.work <= 5;
+  workPlus.disabled = settings.pomodoro.work >= 90;
+  shortBreakMinus.disabled = settings.pomodoro.shortBreak <= 1;
+  shortBreakPlus.disabled = settings.pomodoro.shortBreak >= 30;
+  longBreakMinus.disabled = settings.pomodoro.longBreak <= 5;
+  longBreakPlus.disabled = settings.pomodoro.longBreak >= 60;
+}
+
+function changePomodoroDuration(key, phase, delta, min, max) {
+  const next = Math.min(max, Math.max(min, settings.pomodoro[key] + delta));
+  settings.pomodoro[key] = next;
+  saveSettings();
+  syncPomodoroDurationLabels();
+  if (!pomodoroActive && pomodoroPhase === phase) {
+    pomodoroRemaining = pomodoroPhaseDuration(pomodoroPhase);
+    renderPomodoro();
+  }
+}
+
+function openPomodoro() {
+  closeSettings();
+  pomodoroPanel.classList.add("open");
+  settingsBackdrop.classList.add("open");
+}
+
+function closePomodoro() {
+  pomodoroPanel.classList.remove("open");
+  if (!settingsPanel.classList.contains("open")) {
+    settingsBackdrop.classList.remove("open");
+  }
+}
+
+pomodoroToggle.addEventListener("click", () => {
+  const isOpen = pomodoroPanel.classList.contains("open");
+  if (isOpen) {
+    closePomodoro();
+  } else {
+    openPomodoro();
+  }
+});
+
+pomodoroBadge.addEventListener("click", openPomodoro);
+
+pomodoroStartBtn.addEventListener("click", () => {
+  pomodoroRunning = !pomodoroRunning;
+  if (pomodoroRunning) pomodoroActive = true;
+  renderPomodoro();
+});
+
+pomodoroResetBtn.addEventListener("click", () => {
+  pomodoroRunning = false;
+  pomodoroActive = false;
+  pomodoroPhase = "work";
+  pomodoroCyclesCompleted = 0;
+  pomodoroRemaining = pomodoroPhaseDuration("work");
+  renderPomodoro();
+});
+
+pomodoroSkipBtn.addEventListener("click", () => {
+  pomodoroActive = true;
+  advancePomodoroPhase(false);
+});
+
+workMinus.addEventListener("click", () => changePomodoroDuration("work", "work", -5, 5, 90));
+workPlus.addEventListener("click", () => changePomodoroDuration("work", "work", 5, 5, 90));
+shortBreakMinus.addEventListener("click", () => changePomodoroDuration("shortBreak", "short", -1, 1, 30));
+shortBreakPlus.addEventListener("click", () => changePomodoroDuration("shortBreak", "short", 1, 1, 30));
+longBreakMinus.addEventListener("click", () => changePomodoroDuration("longBreak", "long", -5, 5, 60));
+longBreakPlus.addEventListener("click", () => changePomodoroDuration("longBreak", "long", 5, 5, 60));
+
+syncPomodoroDurationLabels();
+renderPomodoro();
 
 applyAllSettings();
 tick();

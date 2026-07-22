@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a10">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Dashboard</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <a class="back-link" href="index.html" aria-label="시계 화면으로 돌아가기">← 시계</a>
+
+  <div class="dashboard">
+    <section class="card weather-card">
+      <span class="card-glare"></span>
+      <div class="weather-date" id="dashboardDate">2026년 7월 22일 (수)</div>
+      <div class="divider"></div>
+      <div class="weather-row">
+        <span class="weather-icon-wrap"><span class="weather-icon" id="weatherIcon">🌤️</span></span>
+        <div class="weather-info">
+          <div class="weather-city" id="weatherCity">위치 확인 중...</div>
+          <div class="weather-desc" id="weatherDesc"></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="quote-block">
+        <span class="quote-text" id="quoteText"></span>
+        <span class="quote-heart">♥</span>
+      </div>
+    </section>
+
+    <section class="card clock-card">
+      <span class="card-glare"></span>
+      <div class="clock-date" id="clockDate">2026.07.22 | WED</div>
+      <div class="clock-time-row">
+        <span class="clock-ampm" id="clockAmpm">AM</span>
+        <span class="clock-time" id="clockTime">11:17</span>
+        <span class="clock-seconds" id="clockSeconds">37</span>
+      </div>
+    </section>
+
+    <section class="card timer-card">
+      <span class="card-glare"></span>
+      <div class="timer-header">
+        <span class="timer-title"><span class="timer-emoji">🍅</span>Focus Timer</span>
+        <button class="timer-gear" id="pomodoroGearBtn" aria-label="포모도로 설정">
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="timer-tabs" id="timerTabs">
+        <button class="timer-tab active" data-tab="pomodoro">포모도로</button>
+        <button class="timer-tab" data-tab="timer">타이머</button>
+        <button class="timer-tab" data-tab="stopwatch">스톱워치</button>
+      </div>
+
+      <div class="timer-settings-popover hidden" id="pomodoroSettingsPopover">
+        <div class="mini-row">
+          <span>집중</span>
+          <div class="mini-stepper">
+            <button data-key="work" data-delta="-5" aria-label="집중 시간 축소">−</button>
+            <span id="popWorkValue">25분</span>
+            <button data-key="work" data-delta="5" aria-label="집중 시간 확대">+</button>
+          </div>
+        </div>
+        <div class="mini-row">
+          <span>짧은 휴식</span>
+          <div class="mini-stepper">
+            <button data-key="shortBreak" data-delta="-1" aria-label="짧은 휴식 축소">−</button>
+            <span id="popShortValue">5분</span>
+            <button data-key="shortBreak" data-delta="1" aria-label="짧은 휴식 확대">+</button>
+          </div>
+        </div>
+        <div class="mini-row">
+          <span>긴 휴식</span>
+          <div class="mini-stepper">
+            <button data-key="longBreak" data-delta="-5" aria-label="긴 휴식 축소">−</button>
+            <span id="popLongValue">15분</span>
+            <button data-key="longBreak" data-delta="5" aria-label="긴 휴식 확대">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer-display" id="timerDisplay">25:00</div>
+
+      <div class="timer-minute-row hidden" id="timerMinuteRow">
+        <button class="mini-stepper-btn" id="timerMinusBtn" aria-label="타이머 시간 축소">−</button>
+        <span id="timerMinutesLabel">10분</span>
+        <button class="mini-stepper-btn" id="timerPlusBtn" aria-label="타이머 시간 확대">+</button>
+      </div>
+
+      <div class="timer-actions">
+        <button class="timer-reset-btn" id="timerResetBtn" aria-label="초기화">
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+            <path d="M3 4v5h5"></path>
+          </svg>
+        </button>
+        <button class="timer-start-btn" id="timerStartBtn">▶ 시작하기</button>
+      </div>
+
+      <div class="timer-caption" id="timerCaption">25분 집중 · 5분 휴식</div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
