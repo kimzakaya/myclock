@@ -85,6 +85,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 15px;
   color: #d5d8dd;
+  min-width: 0;
 }
 
 .todo-item.dragging {
@@ -124,6 +125,9 @@ body {
 
 .todo-text {
   flex-grow: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .todo-delete-btn {

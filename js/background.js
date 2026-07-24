@@ -10,7 +10,17 @@ const LEGACY_BG_STORAGE_KEY = "myClockBackgroundBoard";
   const legacy = localStorage.getItem(LEGACY_BG_STORAGE_KEY);
   if (legacy !== null) localStorage.setItem(BG_STORAGE_KEY, legacy);
 })();
-const MAX_ACTIVE_WIDGETS = 3;
+const MAX_ACTIVE_WIDGETS_DESKTOP = 3;
+const MAX_ACTIVE_WIDGETS_MOBILE = 2;
+const mobileLayoutQuery = window.matchMedia("(max-width: 500px)");
+
+function isMobileLayout() {
+  return mobileLayoutQuery.matches;
+}
+
+function maxActiveWidgets() {
+  return isMobileLayout() ? MAX_ACTIVE_WIDGETS_MOBILE : MAX_ACTIVE_WIDGETS_DESKTOP;
+}
 const MAX_IMAGE_DIMENSION = 1920;
 const IMAGE_QUALITY = 0.82;
 const SCALE_MIN = 0.7;
@@ -164,8 +174,8 @@ pickerChips.forEach((chip) => {
   chip.addEventListener("click", () => {
     const key = chip.dataset.widget;
     const state = board.widgets[key];
-    if (!state.active && activeWidgetCount() >= MAX_ACTIVE_WIDGETS) {
-      showToast(`위젯은 최대 ${MAX_ACTIVE_WIDGETS}개까지 선택할 수 있어요.`);
+    if (!state.active && activeWidgetCount() >= maxActiveWidgets()) {
+      showToast(`위젯은 최대 ${maxActiveWidgets()}개까지 선택할 수 있어요.`);
       return;
     }
     state.active = !state.active;
@@ -173,6 +183,32 @@ pickerChips.forEach((chip) => {
     renderWidgets();
   });
 });
+
+/* ---- keep active widget count within the mobile limit ---- */
+
+function enforceMobileWidgetLimit() {
+  if (!isMobileLayout()) return;
+  const keysInOrder = Object.keys(widgetEls);
+  let keptCount = 0;
+  let trimmed = false;
+  keysInOrder.forEach((key) => {
+    const state = board.widgets[key];
+    if (!state.active) return;
+    keptCount += 1;
+    if (keptCount > MAX_ACTIVE_WIDGETS_MOBILE) {
+      state.active = false;
+      trimmed = true;
+    }
+  });
+  if (trimmed) {
+    saveBoard();
+    renderWidgets();
+    showToast(`모바일에서는 위젯을 최대 ${MAX_ACTIVE_WIDGETS_MOBILE}개까지만 겹치지 않게 쓸 수 있어요.`);
+  }
+}
+
+mobileLayoutQuery.addEventListener("change", enforceMobileWidgetLimit);
+window.addEventListener("resize", enforceMobileWidgetLimit);
 
 /* ---- drag to reposition ---- */
 
@@ -266,3 +302,4 @@ Object.keys(widgetEls).forEach((key) => {
 
 renderBackground();
 renderWidgets();
+enforceMobileWidgetLimit();

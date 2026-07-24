@@ -237,10 +237,33 @@ html, body {
 }
 
 @media (max-width: 500px) {
+  html, body {
+    overflow-y: auto;
+  }
+
+  .bg-widgets-stack {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: calc(env(safe-area-inset-top) + 90px) 0 100px;
+  }
+
   .bg-widget[data-widget="clock"],
   .bg-widget[data-widget="weather"],
   .bg-widget[data-widget="timer"],
   .bg-widget[data-widget="todo"] {
     width: calc(100vw - 32px);
+    position: static;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+
+  .bg-widget-handle,
+  .bg-widget-resize {
+    display: none;
   }
 }
