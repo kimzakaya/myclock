@@ -1,0 +1,214 @@
+/*
+  Styles for the To-Do List page (toDoList.html)
+*/
+
+body {
+  /* Ensure body can scroll on mobile if content overflows */
+  overflow: auto;
+}
+
+.back-link {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 18px);
+  left: calc(env(safe-area-inset-left) + 18px);
+  width: auto;
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #cfd3da;
+  z-index: 20;
+}
+
+.back-link:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Dashboard grid override for 2-column layout */
+.dashboard {
+  grid-template-columns: 1.5fr 1fr; /* To-do 60%, Clock 40% */
+  gap: 20px;
+  padding: 80px 24px 24px;
+}
+
+.todo-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 20, 28, 0.68);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 26px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+.todo-title {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #eef1f6;
+}
+
+.todo-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.todo-input {
+  flex-grow: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #eef1f6;
+  font-size: 15px;
+}
+
+.todo-input::placeholder {
+  color: #8a8a93;
+}
+
+.todo-add-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #9284f7, #6a5ce0);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.todo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 15px;
+  color: #d5d8dd;
+}
+
+.todo-item.dragging {
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-color: transparent;
+  cursor: grabbing;
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.todo-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #8275e8;
+}
+
+.todo-edit-input {
+  flex-grow: 1;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid #8275e8;
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: #eef1f6;
+  font-size: 15px;
+  margin: -4px 0; /* Adjust for padding */
+}
+
+.todo-item.editing .todo-checkbox,
+.todo-item.editing .todo-delete-btn {
+  /* Hide checkbox and delete button while editing */
+  visibility: hidden;
+}
+
+.todo-text {
+  flex-grow: 1;
+}
+
+.todo-delete-btn {
+  background: none;
+  border: none;
+  color: #8a8a93;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.todo-item:hover .todo-delete-btn {
+  opacity: 1;
+}
+
+.todo-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.todo-io-btn {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #eef1f6;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.todo-clear-btn {
+  margin-left: auto; /* Push to the right */
+  background: rgba(255, 90, 90, 0.15);
+  color: #ff8080;
+  border-color: rgba(255, 90, 90, 0.2);
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.clock-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.clock-card .clock {
+  /* Card 내부에서 시계가 잘리지 않도록 크기 제한 */
+  font-size: calc(clamp(32px, 8vw, 120px) * var(--clock-scale, 1) * var(--design-scale, 1));
+}
+
+/* Responsive layout for mobile */
+@media (max-width: 800px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+    padding: 80px 16px 24px;
+  }
+}

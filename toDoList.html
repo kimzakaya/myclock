@@ -1,51 +1,63 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a10">
-<meta name="color-scheme" content="dark">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Dashboard</title>
-<link rel="stylesheet" href="dashboard.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#05050b">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>To-Do & Clock</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="todo.css">
 </head>
-<body>
+<body data-style="bold">
   <div class="bg-orbs" aria-hidden="true">
     <span class="orb orb-1"></span>
     <span class="orb orb-2"></span>
     <span class="orb orb-3"></span>
   </div>
 
-  <a class="back-link" href="index.html" aria-label="시계 화면으로 돌아가기">시계</a>
+  <a class="back-link" href="index.html" aria-label="메인 시계 화면으로 돌아가기">시계</a>
+
+  <nav class="top-nav">
+    <a class="nav-btn" href="index.html" aria-label="메인 시계 화면으로 돌아가기">시계</a>
+    <a class="nav-btn" href="dashboard.html" aria-label="대시보드">대시보드</a>
+    <button class="nav-btn" id="fullscreenToggle" aria-label="전체화면">
+      <svg class="icon-enter" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+        <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>
+        <path d="M8 21H5a2 2 0 0 1-2-2v-3"></path>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+      </svg>
+      <svg class="icon-exit" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3v3a2 2 0 0 1-2 2H4"></path>
+        <path d="M15 3v3a2 2 0 0 0 2 2h3"></path>
+        <path d="M9 21v-3a2 2 0 0 0-2-2H4"></path>
+        <path d="M15 21v-3a2 2 0 0 1 2-2h3"></path>
+      </svg>
+    </button>
+  </nav>
 
   <div class="dashboard">
-    <section class="card weather-card">
-      <span class="card-glare"></span>
-      <div class="weather-date" id="dashboardDate">2026년 7월 22일 (수)</div>
-      <div class="divider"></div>
-      <div class="weather-row">
-        <span class="weather-icon-wrap"><span class="weather-icon" id="weatherIcon">🌤️</span></span>
-        <div class="weather-info">
-          <div class="weather-city" id="weatherCity">위치 확인 중...</div>
-          <div class="weather-desc" id="weatherDesc"></div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div class="quote-block">
-        <span class="quote-text" id="quoteText"></span>
-        <span class="quote-heart">♥</span>
-      </div>
-    </section>
-
-    <section class="card clock-card">
-      <span class="card-glare"></span>
-      <div class="clock-date" id="clockDate">2026.07.22 | WED</div>
-      <div class="clock-time-row">
-        <span class="clock-ampm" id="clockAmpm">AM</span>
-        <span class="clock-time" id="clockTime">11:17</span>
-        <span class="clock-seconds" id="clockSeconds">37</span>
+    <section class="card todo-container">
+      <h1 class="todo-title">To-Do List</h1>
+      <form class="todo-form" id="todoForm">
+        <input type="text" id="todoInput" class="todo-input" placeholder="새로운 할 일을 추가하세요..." autocomplete="off">
+        <button type="submit" class="todo-add-btn" aria-label="할 일 추가">+</button>
+      </form>
+      <ul class="todo-list" id="todoList">
+        <!-- To-do items will be rendered here by JavaScript -->
+      </ul>
+      <div class="todo-footer">
+        <button class="todo-io-btn" id="exportBtn">JSON 내보내기</button>
+        <label class="todo-io-btn">
+          JSON 가져오기
+          <input type="file" id="importInput" accept=".json" style="display: none;">
+        </label>
+        <button class="todo-io-btn todo-clear-btn" id="clearCompletedBtn" style="display: none;">완료된 항목 삭제</button>
       </div>
     </section>
 
@@ -115,10 +127,12 @@
       <div class="timer-caption" id="timerCaption">25분 집중 · 5분 휴식</div>
     </section>
   </div>
-
+  
   <div class="toast" id="toast"></div>
 
-<script src="timer.js"></script>
-<script src="dashboard.js"></script>
+  <script src="timer.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="todo.js"></script>
+
 </body>
 </html>

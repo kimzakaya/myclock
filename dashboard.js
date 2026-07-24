@@ -1,4 +1,3 @@
-const STORAGE_KEY = "myClockSettings";
 const KO_WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const EN_WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -42,8 +41,6 @@ const WEATHER_CODE_MAP = {
 };
 
 const DEFAULT_LOCATION = { lat: 37.5665, lon: 126.978, name: "서울" };
-const DEFAULT_POMODORO = { work: 25, shortBreak: 5, longBreak: 15 };
-const POMODORO_CYCLES_BEFORE_LONG_BREAK = 4;
 
 const dashboardDateEl = document.getElementById("dashboardDate");
 const weatherIconEl = document.getElementById("weatherIcon");
@@ -80,7 +77,9 @@ function dayOfYear(date) {
 }
 
 function renderQuote() {
-  quoteTextEl.textContent = QUOTES[dayOfYear(new Date()) % QUOTES.length];
+  if (quoteTextEl) {
+    quoteTextEl.textContent = QUOTES[dayOfYear(new Date()) % QUOTES.length];
+  }
 }
 
 /* ---- clock ---- */
@@ -91,15 +90,21 @@ function renderClock() {
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
 
-  dashboardDateEl.textContent = `${y}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${KO_WEEKDAYS[now.getDay()]})`;
-  clockDateEl.textContent = `${y}.${m}.${d} | ${EN_WEEKDAYS[now.getDay()]}`;
+  if (dashboardDateEl) {
+    dashboardDateEl.textContent = `${y}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${KO_WEEKDAYS[now.getDay()]})`;
+  }
+  if (clockDateEl) {
+    clockDateEl.textContent = `${y}.${m}.${d} | ${EN_WEEKDAYS[now.getDay()]}`;
+  }
 
-  const hours24 = now.getHours();
-  clockAmpmEl.textContent = hours24 >= 12 ? "PM" : "AM";
-  let displayHours = hours24 % 12;
-  if (displayHours === 0) displayHours = 12;
-  clockTimeEl.textContent = `${String(displayHours).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  clockSecondsEl.textContent = String(now.getSeconds()).padStart(2, "0");
+  if (clockAmpmEl && clockTimeEl && clockSecondsEl) {
+    const hours24 = now.getHours();
+    clockAmpmEl.textContent = hours24 >= 12 ? "PM" : "AM";
+    let displayHours = hours24 % 12;
+    if (displayHours === 0) displayHours = 12;
+    clockTimeEl.textContent = `${String(displayHours).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    clockSecondsEl.textContent = String(now.getSeconds()).padStart(2, "0");
+  }
 }
 
 /* ---- weather ---- */
@@ -129,6 +134,7 @@ async function fetchWeather(lat, lon) {
 }
 
 function showWeather(cityName, weatherData) {
+  if (!weatherIconEl || !weatherCityEl || !weatherDescEl) return;
   const current = weatherData.current;
   const [desc, emoji] = describeWeather(current.weather_code);
   weatherIconEl.textContent = emoji;
@@ -137,6 +143,7 @@ function showWeather(cityName, weatherData) {
 }
 
 function loadWeatherFor(lat, lon, cityNamePromise) {
+  if (!weatherCityEl) return;
   Promise.all([fetchWeather(lat, lon), cityNamePromise])
     .then(([weatherData, cityName]) => showWeather(cityName, weatherData))
     .catch(() => {
