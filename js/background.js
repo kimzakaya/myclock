@@ -2,7 +2,14 @@
   Custom background page: photo upload + draggable widget placement.
 */
 
-const BG_STORAGE_KEY = "myClockBackgroundBoard";
+const BG_STORAGE_KEY = "gredoBackgroundBoard";
+const LEGACY_BG_STORAGE_KEY = "myClockBackgroundBoard";
+
+(function migrateLegacyBackgroundStorage() {
+  if (localStorage.getItem(BG_STORAGE_KEY) !== null) return;
+  const legacy = localStorage.getItem(LEGACY_BG_STORAGE_KEY);
+  if (legacy !== null) localStorage.setItem(BG_STORAGE_KEY, legacy);
+})();
 const MAX_ACTIVE_WIDGETS = 3;
 const MAX_IMAGE_DIMENSION = 1920;
 const IMAGE_QUALITY = 0.82;

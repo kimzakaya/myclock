@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Clock</title>
+<title>Gredo</title>
 <link rel="preconnect" href="https://fonts.cdnfonts.com">
 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/ds-digital">
 <link rel="stylesheet" href="css/style.css">
@@ -184,6 +184,11 @@
         </div>
       </div>
 
+      <div class="settings-row">
+        <span class="settings-label">완료 알림</span>
+        <button class="toggle-btn" id="pomodoroNotifyToggle"></button>
+      </div>
+
       <div class="pomodoro-controls">
         <button class="pomodoro-icon-btn" id="pomodoroResetBtn" aria-label="초기화">
           <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -229,6 +234,8 @@
     </div>
   </div>
 
+<script src="js/core/notifications.js"></script>
+<script src="js/core/pomodoroEngine.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>

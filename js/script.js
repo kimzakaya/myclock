@@ -1,7 +1,17 @@
+const Notifications = window.Gredo.Notifications;
+
 const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 const WEEKDAYS_EN = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const STORAGE_KEY = "myClockSettings";
+const STORAGE_KEY = "gredoSettings";
+const LEGACY_STORAGE_KEY = "myClockSettings";
 const BG_COLORS = { digital: "#000000", bold: "#12141c", glass: "#05050b" };
+
+function migrateLegacyStorage() {
+  if (localStorage.getItem(STORAGE_KEY) !== null) return;
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy !== null) localStorage.setItem(STORAGE_KEY, legacy);
+}
+migrateLegacyStorage();
 
 const clockEl = document.querySelector(".clock");
 const dateEl = document.getElementById("date");
@@ -41,6 +51,7 @@ const pomodoroDots = document.getElementById("pomodoroDots");
 const pomodoroStartBtn = document.getElementById("pomodoroStartBtn");
 const pomodoroResetBtn = document.getElementById("pomodoroResetBtn");
 const pomodoroSkipBtn = document.getElementById("pomodoroSkipBtn");
+const pomodoroNotifyToggle = document.getElementById("pomodoroNotifyToggle");
 const workMinus = document.getElementById("workMinus");
 const workPlus = document.getElementById("workPlus");
 const workValue = document.getElementById("workValue");
@@ -76,6 +87,7 @@ const defaultSettings = {
   sizeScale: 1,
   layout: defaultLayout(),
   pomodoro: { work: 25, shortBreak: 5, longBreak: 15 },
+  notifications: false,
 };
 
 function loadSettings() {
@@ -248,7 +260,7 @@ function render() {
 
 function tick() {
   render();
-  updatePomodoroTick();
+  pomodoroEngine.tick();
   const now = new Date();
   const delay = 1000 - now.getMilliseconds();
   setTimeout(tick, delay);
@@ -494,7 +506,6 @@ fullscreenToggle.addEventListener("click", () => {
 
 /* ---- pomodoro timer ---- */
 
-const POMODORO_CYCLES_BEFORE_LONG_BREAK = 4;
 const POMODORO_PHASE_LABELS = { work: "집중 시간", short: "짧은 휴식", long: "긴 휴식" };
 const POMODORO_BADGE_LABELS = { work: "집중", short: "휴식", long: "긴 휴식" };
 const POMODORO_COMPLETE_MESSAGES = {
@@ -502,18 +513,6 @@ const POMODORO_COMPLETE_MESSAGES = {
   short: "휴식 종료! 다시 집중해볼까요?",
   long: "긴 휴식 종료! 다음 사이클을 시작해요.",
 };
-
-let pomodoroPhase = "work";
-let pomodoroRemaining = settings.pomodoro.work * 60;
-let pomodoroRunning = false;
-let pomodoroActive = false;
-let pomodoroCyclesCompleted = 0;
-
-function pomodoroPhaseDuration(phase) {
-  if (phase === "work") return settings.pomodoro.work * 60;
-  if (phase === "short") return settings.pomodoro.shortBreak * 60;
-  return settings.pomodoro.longBreak * 60;
-}
 
 function formatMMSS(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -544,51 +543,37 @@ function playChime() {
   }
 }
 
+function handlePomodoroComplete(endedPhase) {
+  showToast(POMODORO_COMPLETE_MESSAGES[endedPhase]);
+  playChime();
+  if (settings.notifications && document.hidden) {
+    const n = Notifications.notify("포모도로 타이머", { body: POMODORO_COMPLETE_MESSAGES[endedPhase], tag: "pomodoro-phase" });
+    if (n) n.onclick = () => { window.focus(); n.close(); };
+  }
+}
+
+const pomodoroEngine = window.Gredo.PomodoroEngine.create({
+  durations: settings.pomodoro,
+  onChange: renderPomodoro,
+  onPhaseComplete: handlePomodoroComplete,
+});
+
 function renderPomodoro() {
-  const timeStr = formatMMSS(pomodoroRemaining);
-  pomodoroPhaseLabel.textContent = POMODORO_PHASE_LABELS[pomodoroPhase];
+  const state = pomodoroEngine.getState();
+  const timeStr = formatMMSS(state.remaining);
+  pomodoroPhaseLabel.textContent = POMODORO_PHASE_LABELS[state.phase];
   pomodoroTimeLabel.textContent = timeStr;
-  pomodoroStartBtn.textContent = pomodoroRunning ? "일시정지" : "시작";
-  pomodoroStartBtn.classList.toggle("is-running", pomodoroRunning);
-  pomodoroToggle.classList.toggle("is-running", pomodoroRunning);
+  pomodoroStartBtn.textContent = state.running ? "일시정지" : "시작";
+  pomodoroStartBtn.classList.toggle("is-running", state.running);
+  pomodoroToggle.classList.toggle("is-running", state.running);
 
   pomodoroDots.querySelectorAll(".dot").forEach((dot, i) => {
-    dot.classList.toggle("filled", i < pomodoroCyclesCompleted);
+    dot.classList.toggle("filled", i < state.cyclesCompleted);
   });
 
-  pomodoroBadge.classList.toggle("hidden", !pomodoroActive);
-  pomodoroBadgePhase.textContent = POMODORO_BADGE_LABELS[pomodoroPhase];
+  pomodoroBadge.classList.toggle("hidden", !state.active);
+  pomodoroBadgePhase.textContent = POMODORO_BADGE_LABELS[state.phase];
   pomodoroBadgeTime.textContent = timeStr;
-}
-
-function advancePomodoroPhase(notify) {
-  const endedPhase = pomodoroPhase;
-  if (pomodoroPhase === "work") {
-    pomodoroCyclesCompleted += 1;
-    pomodoroPhase = pomodoroCyclesCompleted >= POMODORO_CYCLES_BEFORE_LONG_BREAK ? "long" : "short";
-  } else if (pomodoroPhase === "long") {
-    pomodoroCyclesCompleted = 0;
-    pomodoroPhase = "work";
-  } else {
-    pomodoroPhase = "work";
-  }
-  pomodoroRemaining = pomodoroPhaseDuration(pomodoroPhase);
-  if (notify) {
-    pomodoroRunning = false;
-    showToast(POMODORO_COMPLETE_MESSAGES[endedPhase]);
-    playChime();
-  }
-  renderPomodoro();
-}
-
-function updatePomodoroTick() {
-  if (!pomodoroRunning) return;
-  pomodoroRemaining -= 1;
-  if (pomodoroRemaining <= 0) {
-    advancePomodoroPhase(true);
-  } else {
-    renderPomodoro();
-  }
 }
 
 function syncPomodoroDurationLabels() {
@@ -603,15 +588,21 @@ function syncPomodoroDurationLabels() {
   longBreakPlus.disabled = settings.pomodoro.longBreak >= 60;
 }
 
-function changePomodoroDuration(key, phase, delta, min, max) {
+function changePomodoroDuration(key, delta, min, max) {
   const next = Math.min(max, Math.max(min, settings.pomodoro[key] + delta));
   settings.pomodoro[key] = next;
   saveSettings();
   syncPomodoroDurationLabels();
-  if (!pomodoroActive && pomodoroPhase === phase) {
-    pomodoroRemaining = pomodoroPhaseDuration(pomodoroPhase);
-    renderPomodoro();
+  pomodoroEngine.setDuration(key, next);
+}
+
+function syncNotificationToggle() {
+  const supported = Notifications.isSupported();
+  if (supported && Notifications.getPermission() === "denied") {
+    settings.notifications = false;
   }
+  pomodoroNotifyToggle.classList.toggle("active", settings.notifications && supported);
+  pomodoroNotifyToggle.disabled = !supported;
 }
 
 function openPomodoro() {
@@ -638,32 +629,38 @@ pomodoroToggle.addEventListener("click", () => {
 
 pomodoroBadge.addEventListener("click", openPomodoro);
 
-pomodoroStartBtn.addEventListener("click", () => {
-  pomodoroRunning = !pomodoroRunning;
-  if (pomodoroRunning) pomodoroActive = true;
-  renderPomodoro();
+pomodoroStartBtn.addEventListener("click", () => pomodoroEngine.toggle());
+pomodoroResetBtn.addEventListener("click", () => pomodoroEngine.reset());
+pomodoroSkipBtn.addEventListener("click", () => pomodoroEngine.skip());
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) pomodoroEngine.resync();
 });
 
-pomodoroResetBtn.addEventListener("click", () => {
-  pomodoroRunning = false;
-  pomodoroActive = false;
-  pomodoroPhase = "work";
-  pomodoroCyclesCompleted = 0;
-  pomodoroRemaining = pomodoroPhaseDuration("work");
-  renderPomodoro();
+pomodoroNotifyToggle.addEventListener("click", async () => {
+  if (!Notifications.isSupported()) {
+    showToast("이 브라우저는 알림을 지원하지 않아요.");
+    return;
+  }
+  if (!settings.notifications) {
+    const permission = await Notifications.requestPermission();
+    settings.notifications = permission === "granted";
+    if (!settings.notifications) showToast("알림 권한이 필요해요. 브라우저 설정에서 허용해주세요.");
+  } else {
+    settings.notifications = false;
+  }
+  saveSettings();
+  syncNotificationToggle();
 });
 
-pomodoroSkipBtn.addEventListener("click", () => {
-  pomodoroActive = true;
-  advancePomodoroPhase(false);
-});
+syncNotificationToggle();
 
-workMinus.addEventListener("click", () => changePomodoroDuration("work", "work", -5, 5, 90));
-workPlus.addEventListener("click", () => changePomodoroDuration("work", "work", 5, 5, 90));
-shortBreakMinus.addEventListener("click", () => changePomodoroDuration("shortBreak", "short", -1, 1, 30));
-shortBreakPlus.addEventListener("click", () => changePomodoroDuration("shortBreak", "short", 1, 1, 30));
-longBreakMinus.addEventListener("click", () => changePomodoroDuration("longBreak", "long", -5, 5, 60));
-longBreakPlus.addEventListener("click", () => changePomodoroDuration("longBreak", "long", 5, 5, 60));
+workMinus.addEventListener("click", () => changePomodoroDuration("work", -5, 5, 90));
+workPlus.addEventListener("click", () => changePomodoroDuration("work", 5, 5, 90));
+shortBreakMinus.addEventListener("click", () => changePomodoroDuration("shortBreak", -1, 1, 30));
+shortBreakPlus.addEventListener("click", () => changePomodoroDuration("shortBreak", 1, 1, 30));
+longBreakMinus.addEventListener("click", () => changePomodoroDuration("longBreak", -5, 5, 60));
+longBreakPlus.addEventListener("click", () => changePomodoroDuration("longBreak", 5, 5, 60));
 
 syncPomodoroDurationLabels();
 renderPomodoro();

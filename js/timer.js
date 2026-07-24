@@ -2,14 +2,20 @@
   Shared timer logic.
 */
 
-const STORAGE_KEY = "myClockSettings";
+const STORAGE_KEY = "gredoSettings";
+const LEGACY_STORAGE_KEY = "myClockSettings";
 const DEFAULT_POMODORO = { work: 25, shortBreak: 5, longBreak: 15 };
-const POMODORO_CYCLES_BEFORE_LONG_BREAK = 4;
 const POMODORO_LIMITS = {
   work: { min: 5, max: 90 },
   shortBreak: { min: 1, max: 30 },
   longBreak: { min: 5, max: 60 },
 };
+
+(function migrateLegacyStorage() {
+  if (localStorage.getItem(STORAGE_KEY) !== null) return;
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy !== null) localStorage.setItem(STORAGE_KEY, legacy);
+})();
 
 function loadPomodoroSettings() {
   try {
@@ -29,6 +35,15 @@ function savePomodoroSettings(pomodoroSettings) {
   }
   saved.pomodoro = pomodoroSettings;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+}
+
+function loadNotificationPref() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return !!(saved && saved.notifications);
+  } catch {
+    return false;
+  }
 }
 
 function formatTime(totalSeconds) {

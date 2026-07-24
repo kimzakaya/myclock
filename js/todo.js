@@ -6,10 +6,22 @@
  */
 class TodoManager {
   constructor() {
-    this.storageKey = 'myClockTodos';
+    this.storageKey = 'gredoTodos';
+    this.legacyStorageKey = 'myClockTodos';
     this.version = 1;
     this.todos = [];
+    this.migrateLegacyStorage();
     this.load();
+  }
+
+  /**
+   * Copies data saved under the old "myclock" storage key over to the
+   * new "gredo" key, once, if the new key hasn't been written yet.
+   */
+  migrateLegacyStorage() {
+    if (localStorage.getItem(this.storageKey) !== null) return;
+    const legacy = localStorage.getItem(this.legacyStorageKey);
+    if (legacy !== null) localStorage.setItem(this.storageKey, legacy);
   }
 
   /**
@@ -141,7 +153,7 @@ class TodoManager {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `myclock-todos-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `gredo-todos-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

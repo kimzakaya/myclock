@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:fonts.cdnfonts.com)",
-      "WebFetch(domain:peclock.netlify.app)"
+      "WebFetch(domain:peclock.netlify.app)",
+      "Bash(git -C \"D:\\\\03_WEB\\\\00_DEV\\\\myclock\" remote -v)"
     ]
   }
 }

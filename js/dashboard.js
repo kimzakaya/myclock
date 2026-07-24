@@ -275,57 +275,26 @@ function playChime() {
 
 /* ---- pomodoro tab ---- */
 
-const pomodoro = {
-  phase: "work",
-  remaining: pomodoroSettings.work * 60,
-  running: false,
-};
-
-function pomodoroPhaseDuration(phase) {
-  if (phase === "work") return pomodoroSettings.work * 60;
-  if (phase === "short") return pomodoroSettings.shortBreak * 60;
-  return pomodoroSettings.longBreak * 60;
-}
-
 const POMODORO_COMPLETE_MESSAGES = {
   work: "집중 시간이 끝났어요. 잠시 쉬어가세요.",
   short: "휴식 종료! 다시 집중해볼까요?",
   long: "긴 휴식 종료! 다음 사이클을 시작해요.",
 };
 
-let pomodoroCyclesCompleted = 0;
-
-function advancePomodoroPhase() {
-  const endedPhase = pomodoro.phase;
-  if (pomodoro.phase === "work") {
-    pomodoroCyclesCompleted += 1;
-    pomodoro.phase = pomodoroCyclesCompleted >= POMODORO_CYCLES_BEFORE_LONG_BREAK ? "long" : "short";
-  } else if (pomodoro.phase === "long") {
-    pomodoroCyclesCompleted = 0;
-    pomodoro.phase = "work";
-  } else {
-    pomodoro.phase = "work";
-  }
-  pomodoro.remaining = pomodoroPhaseDuration(pomodoro.phase);
-  pomodoro.running = false;
+function handlePomodoroComplete(endedPhase) {
   showToast(POMODORO_COMPLETE_MESSAGES[endedPhase]);
   playChime();
-}
-
-function tickPomodoro() {
-  if (!pomodoro.running) return;
-  pomodoro.remaining -= 1;
-  if (pomodoro.remaining <= 0) {
-    advancePomodoroPhase();
+  if (loadNotificationPref() && document.hidden) {
+    const n = Gredo.Notifications.notify("포모도로 타이머", { body: POMODORO_COMPLETE_MESSAGES[endedPhase], tag: "pomodoro-phase" });
+    if (n) n.onclick = () => { window.focus(); n.close(); };
   }
 }
 
-function resetPomodoro() {
-  pomodoro.phase = "work";
-  pomodoro.running = false;
-  pomodoroCyclesCompleted = 0;
-  pomodoro.remaining = pomodoroPhaseDuration("work");
-}
+const pomodoroEngine = Gredo.PomodoroEngine.create({
+  durations: pomodoroSettings,
+  onChange: renderActiveTimer,
+  onPhaseComplete: handlePomodoroComplete,
+});
 
 const POMODORO_CAPTION = () =>
   `${pomodoroSettings.work}분 집중 · ${pomodoroSettings.shortBreak}분 휴식`;
@@ -380,10 +349,11 @@ let activeTab = "pomodoro";
 
 function renderActiveTimer() {
   if (activeTab === "pomodoro") {
-    timerDisplayEl.textContent = formatTime(pomodoro.remaining);
+    const state = pomodoroEngine.getState();
+    timerDisplayEl.textContent = formatTime(state.remaining);
     timerCaptionEl.textContent = POMODORO_CAPTION();
-    timerStartBtn.textContent = pomodoro.running ? "⏸ 일시정지" : "▶ 시작하기";
-    timerStartBtn.classList.toggle("is-running", pomodoro.running);
+    timerStartBtn.textContent = state.running ? "⏸ 일시정지" : "▶ 시작하기";
+    timerStartBtn.classList.toggle("is-running", state.running);
   } else if (activeTab === "timer") {
     timerDisplayEl.textContent = formatTime(timerState.remaining);
     timerCaptionEl.textContent = "카운트다운 타이머";
@@ -419,7 +389,7 @@ timerTabs.addEventListener("click", (e) => {
 
 timerStartBtn.addEventListener("click", () => {
   if (activeTab === "pomodoro") {
-    pomodoro.running = !pomodoro.running;
+    pomodoroEngine.toggle();
   } else if (activeTab === "timer") {
     if (timerState.remaining <= 0) timerState.remaining = timerState.durationMinutes * 60;
     timerState.running = !timerState.running;
@@ -430,7 +400,7 @@ timerStartBtn.addEventListener("click", () => {
 });
 
 timerResetBtn.addEventListener("click", () => {
-  if (activeTab === "pomodoro") resetPomodoro();
+  if (activeTab === "pomodoro") pomodoroEngine.reset();
   else if (activeTab === "timer") resetTimer();
   else resetStopwatch();
   renderActiveTimer();
@@ -476,9 +446,7 @@ settingsPopover.addEventListener("click", (e) => {
   pomodoroSettings[key] = Math.min(max, Math.max(min, pomodoroSettings[key] + delta));
   savePomodoroSettings(pomodoroSettings);
   syncPopoverLabels();
-  if (!pomodoro.running && pomodoro.phase === (key === "work" ? "work" : key === "shortBreak" ? "short" : "long")) {
-    pomodoro.remaining = pomodoroPhaseDuration(pomodoro.phase);
-  }
+  pomodoroEngine.setDuration(key, pomodoroSettings[key]);
   renderActiveTimer();
 });
 
@@ -486,13 +454,17 @@ settingsPopover.addEventListener("click", (e) => {
 
 function tick() {
   renderClock();
-  tickPomodoro();
+  pomodoroEngine.tick();
   tickTimer();
   tickStopwatch();
   renderActiveTimer();
   const now = new Date();
   setTimeout(tick, 1000 - now.getMilliseconds());
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) pomodoroEngine.resync();
+});
 
 renderQuote();
 loadWeather();
