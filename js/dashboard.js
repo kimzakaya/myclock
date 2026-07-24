@@ -175,26 +175,6 @@ function loadWeather() {
 
 /* ---- shared settings (synced with index.html via localStorage) ---- */
 
-function loadPomodoroSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    return { ...DEFAULT_POMODORO, ...(saved.pomodoro || {}) };
-  } catch {
-    return { ...DEFAULT_POMODORO };
-  }
-}
-
-function savePomodoroSettings(pomodoroSettings) {
-  let saved = {};
-  try {
-    saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
-    saved = {};
-  }
-  saved.pomodoro = pomodoroSettings;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-}
-
 const pomodoroSettings = loadPomodoroSettings();
 
 /* ---- toast + chime ---- */
@@ -205,6 +185,69 @@ function showToast(message) {
   toastEl.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 3200);
+}
+
+/* ---- fullscreen toggle ---- */
+
+const fullscreenToggle = document.getElementById("fullscreenToggle");
+
+function isFullscreen() {
+  return !!(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement
+  );
+}
+
+function requestFullscreen() {
+  const el = document.documentElement;
+  const request =
+    el.requestFullscreen ||
+    el.webkitRequestFullscreen ||
+    el.msRequestFullscreen;
+
+  if (!request) {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    showToast(
+      isIOS
+        ? "iOS Safari는 전체화면 API를 지원하지 않아요. 공유 버튼 → \"홈 화면에 추가\"로 설치하면 주소창 없이 앱처럼 쓸 수 있어요."
+        : "이 브라우저에서는 전체화면을 지원하지 않아요."
+    );
+    return;
+  }
+
+  const result = request.call(el);
+  if (result && result.catch) {
+    result.catch(() => {
+      showToast("전체화면 전환에 실패했어요.");
+    });
+  }
+}
+
+function exitFullscreen() {
+  const exit =
+    document.exitFullscreen ||
+    document.webkitExitFullscreen ||
+    document.msExitFullscreen;
+  if (exit) exit.call(document);
+}
+
+function updateFullscreenButton() {
+  fullscreenToggle.classList.toggle("is-fullscreen", isFullscreen());
+}
+
+if (fullscreenToggle) {
+  fullscreenToggle.addEventListener("click", () => {
+    if (isFullscreen()) {
+      exitFullscreen();
+    } else {
+      requestFullscreen();
+    }
+  });
+
+  ["fullscreenchange", "webkitfullscreenchange", "MSFullscreenChange"].forEach((evt) => {
+    document.addEventListener(evt, updateFullscreenButton);
+  });
 }
 
 function playChime() {
@@ -228,17 +271,6 @@ function playChime() {
   } catch {
     /* audio not available; silently skip the chime */
   }
-}
-
-function formatTime(totalSeconds) {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const hh = Math.floor(s / 3600);
-  const mm = Math.floor((s % 3600) / 60);
-  const ss = s % 60;
-  if (hh > 0) {
-    return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
-  }
-  return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
 }
 
 /* ---- pomodoro tab ---- */
@@ -434,12 +466,6 @@ document.addEventListener("click", (e) => {
   if (settingsPopover.contains(e.target) || e.target === gearBtn) return;
   settingsPopover.classList.add("hidden");
 });
-
-const POMODORO_LIMITS = {
-  work: { min: 5, max: 90 },
-  shortBreak: { min: 1, max: 30 },
-  longBreak: { min: 5, max: 60 },
-};
 
 settingsPopover.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-key]");

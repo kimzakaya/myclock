@@ -193,6 +193,11 @@ class TodoUI {
     this.toastTimer = null;
     this.draggedItem = null;
 
+    this.ioInfoBackdrop = document.getElementById('ioInfoBackdrop');
+    this.ioInfoPanel = document.getElementById('ioInfoPanel');
+    this.ioInfoCancelBtn = document.getElementById('ioInfoCancelBtn');
+    this.ioInfoConfirmBtn = document.getElementById('ioInfoConfirmBtn');
+
     this.init();
   }
 
@@ -233,6 +238,16 @@ class TodoUI {
     this.toastEl.classList.add("show");
     clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => this.toastEl.classList.remove("show"), 3200);
+  }
+
+  openIoInfo() {
+    this.ioInfoBackdrop.classList.add('open');
+    this.ioInfoPanel.classList.add('open');
+  }
+
+  closeIoInfo() {
+    this.ioInfoBackdrop.classList.remove('open');
+    this.ioInfoPanel.classList.remove('open');
   }
 
   addEventListeners() {
@@ -294,8 +309,21 @@ class TodoUI {
     });
 
     this.exportBtn.addEventListener('click', () => {
+      this.openIoInfo();
+    });
+
+    this.ioInfoCancelBtn.addEventListener('click', () => {
+      this.closeIoInfo();
+    });
+
+    this.ioInfoBackdrop.addEventListener('click', () => {
+      this.closeIoInfo();
+    });
+
+    this.ioInfoConfirmBtn.addEventListener('click', () => {
       this.manager.exportJSON();
-      this.showToast("To-Do List가 JSON 파일로 내보내졌습니다.");
+      this.showToast("할 일 목록이 파일로 저장되었습니다.");
+      this.closeIoInfo();
     });
 
     this.importInput.addEventListener('change', (e) => {
@@ -304,7 +332,7 @@ class TodoUI {
         this.manager.importJSON(file)
           .then(() => {
             this.render();
-            this.showToast("To-Do List를 가져왔습니다.");
+            this.showToast("할 일 목록을 불러왔습니다.");
           })
           .catch(error => this.showToast(error.message));
       }

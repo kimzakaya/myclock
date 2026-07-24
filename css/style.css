@@ -430,6 +430,65 @@ body {
   right: calc(env(safe-area-inset-right) + 18px + 100px);
 }
 
+/* ---- background page link button ---- */
+.background-toggle {
+  right: calc(env(safe-area-inset-right) + 18px + 150px);
+}
+
+/* ---- icon button tooltip ---- */
+[data-tooltip]::after,
+[data-tooltip]::before {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition-delay: 0.1s;
+  z-index: 30;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  white-space: nowrap;
+  background: rgba(18, 18, 26, 0.92);
+  color: #eef1f6;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  transform: translateY(-4px);
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  background: rgba(18, 18, 26, 0.92);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translateY(2px) rotate(45deg);
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: rotate(45deg);
+}
+
 .pomodoro-toggle.is-running {
   background: rgba(255, 176, 32, 0.22);
   color: #ffb020;

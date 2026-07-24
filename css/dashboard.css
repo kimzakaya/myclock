@@ -102,26 +102,101 @@ body {
   }
 }
 
-.back-link {
+/* ---- shared icon nav buttons (matches index.html button style) ---- */
+.top-nav {
   position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-  color: var(--text-dim);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 7px 14px;
-  border-radius: 999px;
-  transition: background-color 0.2s ease;
+  top: calc(env(safe-area-inset-top) + 18px);
+  left: calc(env(safe-area-inset-left) + 18px);
+  display: flex;
+  gap: 14px;
+  z-index: 20;
 }
 
-.back-link:hover {
-  background: rgba(255, 255, 255, 0.14);
+.nav-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd3da;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.nav-btn:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.nav-btn .icon-exit {
+  display: none;
+}
+
+.nav-btn.is-fullscreen .icon-enter {
+  display: none;
+}
+
+.nav-btn.is-fullscreen .icon-exit {
+  display: block;
+}
+
+/* ---- icon button tooltip ---- */
+[data-tooltip]::after,
+[data-tooltip]::before {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition-delay: 0.1s;
+  z-index: 30;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  white-space: nowrap;
+  background: rgba(18, 18, 26, 0.92);
+  color: #eef1f6;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  transform: translateY(-4px);
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  width: 8px;
+  height: 8px;
+  background: rgba(18, 18, 26, 0.92);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translateY(2px) rotate(45deg);
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: rotate(45deg);
 }
 
 .dashboard {
@@ -133,7 +208,7 @@ body {
   display: grid;
   grid-template-columns: minmax(240px, 300px) 1fr minmax(280px, 340px);
   gap: 20px;
-  padding: 56px 24px 24px;
+  padding: 80px 24px 24px;
   perspective: 1400px;
 }
 
@@ -609,10 +684,10 @@ body {
     height: auto;
     min-height: 100vh;
     grid-template-columns: 1fr;
-    padding: 64px 16px 24px;
+    padding: 80px 16px 24px;
   }
 
-  .clock-card {
+  .dashboard .clock-card {
     order: -1;
     padding: 32px 20px;
   }

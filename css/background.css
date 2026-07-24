@@ -1,0 +1,246 @@
+/*
+  Styles for the custom background page (background.html)
+*/
+
+html, body {
+  overflow: hidden;
+}
+
+/* ---- photo background ---- */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-color: #05050b;
+  background-size: cover;
+  background-position: center;
+}
+
+/* ---- empty state (no photo yet) ---- */
+.bg-empty {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px;
+}
+
+.bg-empty.hidden {
+  display: none;
+}
+
+.bg-empty-icon {
+  font-size: 46px;
+  margin-bottom: 4px;
+}
+
+.bg-empty-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #eef1f6;
+}
+
+.bg-empty-desc {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.bg-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #9284f7, #6a5ce0);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(124, 108, 240, 0.35);
+}
+
+.bg-upload-btn:active {
+  filter: brightness(0.94);
+}
+
+/* ---- widgets ---- */
+.bg-widget {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  transform-origin: top left;
+}
+
+.bg-widget.hidden {
+  display: none;
+}
+
+.bg-widget > .card {
+  flex: 1;
+  min-height: 0;
+}
+
+.bg-widget[data-widget="clock"],
+.bg-widget[data-widget="weather"] {
+  width: min(280px, calc(100vw - 40px));
+}
+
+.bg-widget[data-widget="timer"] {
+  width: min(300px, calc(100vw - 40px));
+}
+
+.bg-widget[data-widget="todo"] {
+  width: min(320px, calc(100vw - 40px));
+  height: min(440px, calc(100vh - 220px));
+}
+
+.bg-widget-handle {
+  position: absolute;
+  top: -12px;
+  left: 14px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(238, 241, 246, 0.9);
+  background: rgba(30, 30, 40, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 5px 10px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.bg-widget-handle:active {
+  cursor: grabbing;
+  background: rgba(50, 50, 62, 0.92);
+}
+
+.bg-widget-resize {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  cursor: nwse-resize;
+  touch-action: none;
+  z-index: 11;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.bg-widget-resize::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
+  transform: translate(-1px, -1px);
+}
+
+.bg-widget-resize:active {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+/* ---- widget picker bar (auto-hides, reveals on hover near the bottom edge) ---- */
+.widget-picker-zone {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70px;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.widget-picker {
+  display: flex;
+  gap: 6px;
+  max-width: calc(100vw - 32px);
+  overflow-x: auto;
+  background: rgba(18, 18, 26, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 8px;
+  margin-bottom: calc(env(safe-area-inset-bottom) + 20px);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* auto-hide/reveal-on-hover only makes sense with a real mouse; touch
+   devices have no hover, so keep the bar permanently visible there */
+@media (hover: hover) and (pointer: fine) {
+  .widget-picker {
+    transform: translateY(calc(100% + 20px));
+    transition: transform 0.25s ease;
+  }
+
+  .widget-picker-zone:hover .widget-picker,
+  .widget-picker-zone:focus-within .widget-picker {
+    transform: translateY(0);
+  }
+}
+
+/* keep the shared toast above the widget picker bar on this page */
+.toast {
+  bottom: calc(env(safe-area-inset-bottom) + 92px);
+}
+
+.picker-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #cfd3da;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.picker-chip:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.picker-chip.active {
+  background: linear-gradient(135deg, #9284f7, #6a5ce0);
+  color: #fff;
+}
+
+@media (max-width: 500px) {
+  .bg-widget[data-widget="clock"],
+  .bg-widget[data-widget="weather"],
+  .bg-widget[data-widget="timer"],
+  .bg-widget[data-widget="todo"] {
+    width: calc(100vw - 32px);
+  }
+}
